@@ -17,7 +17,7 @@ def detector(image):
 
   image = imutils.resize(image, width=min(DEFAULT_WIDTH, image.shape[1]))
 
-  (rects, weights) = HOGCV.detectMultiScale(image, winStride=(8, 8), padding=(4, 4), scale=1.01)
+  (rects, weights) = HOGCV.detectMultiScale(image, winStride=(8, 8), padding=(64, 64), scale=1.05)
 
   # Applies non-max supression from imutils package to kick-off overlapped
   # boxes
@@ -98,8 +98,12 @@ def argsParser():
   return args
 
 def main():
-  args = argsParser()
+  # args = argsParser()
+  args = dict()
+  args["camera"] = "true"
+  args["image"] = None
   detectPeople(args)
+  
 
 
 if __name__ == '__main__':
