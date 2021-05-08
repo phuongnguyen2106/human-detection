@@ -14,7 +14,7 @@ def detector(image):
   '''
 
   image = imutils.resize(image, width=min(DEFAULT_WIDTH, image.shape[1]))
-  # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
   (rects, weights) = HOGCV.detectMultiScale(image, winStride=(4, 4), padding=(4, 4), scale=1.05)
 

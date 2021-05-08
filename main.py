@@ -8,6 +8,7 @@ import cv2
 import imutils
 import numpy as np
 import hogs
+import haar
 
 class VideoThread(QThread):
   change_pixmap_signal = pyqtSignal(np.ndarray)
@@ -158,7 +159,10 @@ class App(QWidget):
   def imageProcess(self):
     if self.method == 'HOGs':
       image = hogs.imageDetect(self.imagePath)
-      self.updateImage(image)
+    elif self.method == 'HAAR':
+      image = haar.imageDetect(self.imagePath)
+      
+    self.updateImage(image)
 
   def videoProcess(self):
     # create the video capture thread
@@ -173,6 +177,9 @@ class App(QWidget):
   def detectImage(self, cv_img):
     if self.method == 'HOGs':
       image = hogs.imageDetect('', cv_img)
+    elif self.method == 'HAAR':
+      image = haar.imageDetect('', cv_img)
+
     qt_img = self.convertCV2Qt(image)
     self.image.setPixmap(qt_img)
     if self.thread is not None:
