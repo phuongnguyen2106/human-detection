@@ -2,12 +2,47 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QFileDialog, QPushButton, QLabel, QRadioButton
 from PyQt5.QtGui import QPixmap, QColor, QImage
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, Qt, QThread
 
 import cv2
+import imutils
+import numpy as np
 import hogs
 
+class VideoThread(QThread):
+  change_pixmap_signal = pyqtSignal(np.ndarray)
 
+  def __init__(self, parent=None):
+    """Initializer."""
+    super().__init__(parent)
+    self.path = None
+    self.cap = None
+    self.pause = True
+  
+  def setPath(self, path):
+    self.path = path
+
+  def run(self):
+    if self.path is not None:
+      self.cap = cv2.VideoCapture(self.path)
+    else:
+      # capture from web cam
+      self.cap = cv2.VideoCapture(0)
+
+    while self.cap.isOpened():
+      self.pause = True
+      ret, cv_img = self.cap.read()
+      if ret:
+        self.change_pixmap_signal.emit(cv_img)
+        while self.pause:
+          pass        
+
+  def stop(self):
+    if self.cap is not None:
+      print("release cap")
+      self.cap.release()
+    # self.quit()
+    # self.wait()
 class App(QWidget):
   """Main Window."""
   def __init__(self, parent=None):
@@ -17,13 +52,18 @@ class App(QWidget):
     self.left = 10
     self.top = 10
     self.width = 900
-    self.height = 800    
+    self.height = 800
+    
+    self.image = QLabel("Hello")
+    self.imageWidth = 800
+    self.imageHeight = 600
+
     self.method = 'HOGs'
+    self.thread = None
 
     self._initWindow()
     self._initLayout()
     self._initDefaultImage()
-
 
   def _initWindow(self):
     self.setWindowTitle(self.title)
@@ -57,24 +97,30 @@ class App(QWidget):
     layout.addWidget(b5, 1, 0)
 
     b6 = QPushButton(text="Chọn video")
+    b6.clicked.connect(self.getVideo)
     layout.addWidget(b6, 1, 2)
 
     b7 = QPushButton(text="Kết nối webcam")
+    b7.clicked.connect(self.connectWebcam)
     layout.addWidget(b7, 1, 4)
-
-    self.image = QLabel("Hello")
+    
     layout.addWidget(self.image, 2, 0, 5, 10)
 
     self.setLayout(layout)
 
   def _initDefaultImage(self):
-    self.imageWidth = 800
-    self.imageHeight = 600
-
-    # self.imagePath = './fpt_uni.png'
     grey = QPixmap(self.imageWidth, self.imageHeight)
     grey.fill(QColor('darkGray'))
     self.image.setPixmap(grey)
+
+  def _closeThread(self):
+    if self.thread is not None and self.thread.isRunning():
+      print("thread running")
+      self.thread.stop()
+      print("thread stop")
+      
+      del self.thread
+      self.thread = None
 
   def btnstate(self,b):
     if b.isChecked() == True:
@@ -82,18 +128,62 @@ class App(QWidget):
       print(self.method)
 	
   def getImage(self):
+    self._closeThread()
+    self._initDefaultImage()
+
     fname = QFileDialog.getOpenFileName(self, 'Open file', "./", "Image files (*.jpg *.gif *.png)")
     self.imagePath = fname[0]    
     self.imageProcess()
 
+  def getVideo(self):
+    self._closeThread()
+    self._initDefaultImage()
+
+    fname = QFileDialog.getOpenFileName(self, 'Open file', "./", "Video files (*.mp4)")
+    self.imagePath = fname[0]
+    if self.imagePath is not None or self.imagePath.length() > 0:
+      self.videoProcess()
+
+  def connectWebcam(self):
+    self._closeThread()
+    self._initDefaultImage()
+
+    # create the video capture thread
+    self.thread = VideoThread()
+    # connect its signal to the update_image slot
+    self.thread.change_pixmap_signal.connect(self.detectImage)
+    # start the thread
+    self.thread.start()
+
   def imageProcess(self):
     if self.method == 'HOGs':
       image = hogs.imageDetect(self.imagePath)
-      pixmap = self.convert_cv_qt(image)
-      self.image.setPixmap(QPixmap(pixmap))
-      self.resize(pixmap.width(), pixmap.height())
+      self.updateImage(image)
 
-  def convert_cv_qt(self, cv_img):
+  def videoProcess(self):
+    # create the video capture thread
+    self.thread = VideoThread()
+    self.thread.setPath(self.imagePath)
+    # connect its signal to the update_image slot
+    self.thread.change_pixmap_signal.connect(self.detectImage)
+    # start the thread
+    self.thread.start()
+
+  @pyqtSlot(np.ndarray)
+  def detectImage(self, cv_img):
+    if self.method == 'HOGs':
+      image = hogs.imageDetect('', cv_img)
+    qt_img = self.convertCV2Qt(image)
+    self.image.setPixmap(qt_img)
+    if self.thread is not None:
+      self.thread.pause = False
+
+  def updateImage(self, cv_img):
+    """Updates the image_label with a new opencv image"""
+    qt_img = self.convertCV2Qt(cv_img)
+    self.image.setPixmap(qt_img)
+
+  def convertCV2Qt(self, cv_img):
     """Convert from an opencv image to QPixmap"""
     rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
     h, w, ch = rgb_image.shape

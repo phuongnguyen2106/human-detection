@@ -14,7 +14,7 @@ def detector(image):
   '''
 
   image = imutils.resize(image, width=min(DEFAULT_WIDTH, image.shape[1]))
-  image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
   (rects, weights) = HOGCV.detectMultiScale(image, winStride=(4, 4), padding=(4, 4), scale=1.05)
 
@@ -25,9 +25,10 @@ def detector(image):
 
   return result
 
-def imageDetect(image_path):
+def imageDetect(imagePath, image=None):
   result = []
-  image = cv2.imread(image_path)
+  if image is None:
+    image = cv2.imread(imagePath)
   if len(image) <= 0:
     print("[ERROR] could not read your local image")
     return result
@@ -38,30 +39,4 @@ def imageDetect(image_path):
   for (xA, yA, xB, yB) in result:
     cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
 
-  # cv2.imshow("result", image)
-  # cv2.waitKey(0)
-  # cv2.destroyAllWindows()
-
   return image
-
-def cameraDetect():
-  cap = cv2.VideoCapture(0)
-
-  while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    frame = imutils.resize(frame, width=min(DEFAULT_WIDTH, frame.shape[1]))
-    result = detector(frame.copy())
-
-    # shows the result
-    for (xA, yA, xB, yB) in result:
-      cv2.rectangle(frame, (xA, yA), (xB, yB), (0, 255, 0), 2)
-    cv2.imshow('frame', frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-      break
-
-  # When everything done, release the capture
-  cap.release()
-  cv2.destroyAllWindows()
-
