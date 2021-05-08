@@ -16,8 +16,9 @@ def detector(image):
   '''
 
   image = imutils.resize(image, width=min(DEFAULT_WIDTH, image.shape[1]))
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-  (rects, weights) = HOGCV.detectMultiScale(image, winStride=(8, 8), padding=(64, 64), scale=1.05)
+  (rects, weights) = HOGCV.detectMultiScale(image, winStride=(4, 4), padding=(4, 4), scale=1.05)
 
   # Applies non-max supression from imutils package to kick-off overlapped
   # boxes
@@ -30,14 +31,14 @@ def localDetect(image_path):
   result = []
   image = cv2.imread(image_path)
   if len(image) <= 0:
-      print("[ERROR] could not read your local image")
-      return result
+    print("[ERROR] could not read your local image")
+    return result
   print("[INFO] Detecting people")
   result = detector(image)
 
   # shows the result
   for (xA, yA, xB, yB) in result:
-      cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
+    cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
 
   cv2.imshow("result", image)
   cv2.waitKey(0)
@@ -66,12 +67,6 @@ def cameraDetect():
   cap.release()
   cv2.destroyAllWindows()
 
-def convert_to_base64(image):
-  image = imutils.resize(image, width=DEFAULT_WIDTH)
-  img_str = cv2.imencode('.png', image)[1].tostring()
-  b64 = base64.b64encode(img_str)
-  return b64.decode('utf-8')
-
 def detectPeople(args):
   image_path = args["image"]
   camera = True if str(args["camera"]) == 'true' else False
@@ -86,9 +81,6 @@ def detectPeople(args):
     print("[INFO] reading camera images")
     cameraDetect()
 
-def buildPayload(variable, value, context):
-  return {variable: {"value": value, "context": context}}
-
 def argsParser():
   ap = argparse.ArgumentParser()
   ap.add_argument("-i", "--image", default=None, help="path to image test file directory")
@@ -98,13 +90,11 @@ def argsParser():
   return args
 
 def main():
-  # args = argsParser()
-  args = dict()
-  args["camera"] = "true"
-  args["image"] = None
+  args = argsParser()
+  # args = dict()
+  # args["camera"] = "true"
+  # args["image"] = None
   detectPeople(args)
   
-
-
 if __name__ == '__main__':
   main()
