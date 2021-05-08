@@ -76,34 +76,26 @@ class App(QWidget):
     label = QLabel("Chọn phương pháp :")
     layout.addWidget(label, 0, 0)
 
-    b1 = QRadioButton("SIFT")    
+    b1 = QRadioButton("HOGs")
+    b1.setChecked(True)
     b1.toggled.connect(lambda:self.btnstate(b1))
     layout.addWidget(b1, 0, 1)
 
-    b2 = QRadioButton("ORB")
+    b2 = QRadioButton("HAAR")
     b2.toggled.connect(lambda:self.btnstate(b2))
     layout.addWidget(b2, 0, 2)
 
-    b3 = QRadioButton("HOGs")
-    b3.setChecked(True)
-    b3.toggled.connect(lambda:self.btnstate(b3))
-    layout.addWidget(b3, 0, 3)
+    b3 = QPushButton(text="Chọn ảnh")
+    b3.clicked.connect(self.getImage)
+    layout.addWidget(b3, 1, 0)
 
-    b4 = QRadioButton("HAAR")
-    b4.toggled.connect(lambda:self.btnstate(b4))
-    layout.addWidget(b4, 0, 4)
+    b4 = QPushButton(text="Chọn video")
+    b4.clicked.connect(self.getVideo)
+    layout.addWidget(b4, 1, 1)
 
-    b5 = QPushButton(text="Chọn ảnh")
-    b5.clicked.connect(self.getImage)
-    layout.addWidget(b5, 1, 0)
-
-    b6 = QPushButton(text="Chọn video")
-    b6.clicked.connect(self.getVideo)
-    layout.addWidget(b6, 1, 2)
-
-    b7 = QPushButton(text="Kết nối webcam")
-    b7.clicked.connect(self.connectWebcam)
-    layout.addWidget(b7, 1, 4)
+    b5 = QPushButton(text="Kết nối webcam")
+    b5.clicked.connect(self.connectWebcam)
+    layout.addWidget(b5, 1, 2)
     
     layout.addWidget(self.image, 2, 0, 5, 10)
 
