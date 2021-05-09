@@ -25,6 +25,6 @@ def imageDetect(imagePath, image=None):
     image = cv2.imread(imagePath)
   if len(image) <= 0:
     print("[ERROR] could not read your local image")
-    return result
+    return image
   print("[INFO] Detecting people")
   return detector(image)

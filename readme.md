@@ -25,3 +25,7 @@ sudo apt-get install qttools5-dev-tools
 https://gist.github.com/ujjwal96/1dcd57542bdaf3c9d1b0dd526ccd44ff
 
 https://realpython.com/python-pyqt-gui-calculator/
+
+## Yolo
+
+[Pretrained model](https://pjreddie.com/media/files/yolov3.weights)

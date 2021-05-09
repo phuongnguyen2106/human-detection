@@ -9,6 +9,7 @@ import imutils
 import numpy as np
 import hogs
 import haar
+import yolo
 
 class VideoThread(QThread):
   change_pixmap_signal = pyqtSignal(np.ndarray)
@@ -85,17 +86,21 @@ class App(QWidget):
     b2.toggled.connect(lambda:self.btnstate(b2))
     layout.addWidget(b2, 0, 2)
 
-    b3 = QPushButton(text="Chọn ảnh")
-    b3.clicked.connect(self.getImage)
-    layout.addWidget(b3, 1, 0)
+    b3 = QRadioButton("YOLO")
+    b3.toggled.connect(lambda:self.btnstate(b3))
+    layout.addWidget(b3, 0, 3)
 
-    b4 = QPushButton(text="Chọn video")
-    b4.clicked.connect(self.getVideo)
-    layout.addWidget(b4, 1, 1)
+    b4 = QPushButton(text="Chọn ảnh")
+    b4.clicked.connect(self.getImage)
+    layout.addWidget(b4, 1, 0)
 
-    b5 = QPushButton(text="Kết nối webcam")
-    b5.clicked.connect(self.connectWebcam)
-    layout.addWidget(b5, 1, 2)
+    b5 = QPushButton(text="Chọn video")
+    b5.clicked.connect(self.getVideo)
+    layout.addWidget(b5, 1, 1)
+
+    b6 = QPushButton(text="Kết nối webcam")
+    b6.clicked.connect(self.connectWebcam)
+    layout.addWidget(b6, 1, 2)
     
     layout.addWidget(self.image, 2, 0, 5, 10)
 
@@ -153,6 +158,8 @@ class App(QWidget):
       image = hogs.imageDetect(self.imagePath)
     elif self.method == 'HAAR':
       image = haar.imageDetect(self.imagePath)
+    elif self.method == 'YOLO':
+      image = yolo.imageDetect(self.imagePath)
       
     self.updateImage(image)
 
@@ -171,6 +178,11 @@ class App(QWidget):
       image = hogs.imageDetect('', cv_img)
     elif self.method == 'HAAR':
       image = haar.imageDetect('', cv_img)
+    elif self.method == 'YOLO':
+      image = yolo.imageDetect('', cv_img)
+    else:
+      print("[ERROR] Unknown method")
+      return
 
     qt_img = self.convertCV2Qt(image)
     self.image.setPixmap(qt_img)
